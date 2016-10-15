@@ -23,8 +23,8 @@ object UserRepo {
   def find(id: Long)(implicit ec: ExecutionContext): XorT[Future, Error, User] = {
     println(s"find user #$id")
     users.find(u => u.id == id) match {
-      case Some(user) => XorT.right(Future { user })
-      case None => XorT.left(Future { UserNotFoundError(id) })
+      case Some(user) => XorT.right[Future, Error, User](Future { user })
+      case None => XorT.left[Future, Error, User](Future { UserNotFoundError(id) })
     }
   }
 
@@ -38,6 +38,9 @@ object UserRepo {
   }
 }
 
+/**
+  * For biz error that should return error code eventually instead of throw exception
+  */
 sealed trait Error {
   def code: Int
   def message: String
@@ -57,18 +60,41 @@ object Error {
   }
 }
 
+/**
+  * Shorthand to convert `A`, `Option[A]`, `Future[A]`, `Future[Option[A]]` to XorT[Future, Error, A]
+  */
 object ErrorT {
-  def apply[A](optInstanceF: Future[Option[A]], error: Error = Error.UnknownError())(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT(optInstanceF.map(Xor.fromOption(_, error)))
-  def pure[A](instance: A)(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT.fromXor[Future](Xor.right[Error, A](instance))
-  def fromOption[A](optInstance: Option[A], error: Error = Error.UnknownError())(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT.fromXor[Future](Xor.fromOption(optInstance, error))
-  def liftF[A](instanceF: Future[A])(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT(instanceF.map(Xor.right[Error, A]))
+  def apply[A](optInstanceF: Future[Option[A]],
+               error: Error = Error.UnknownError())
+              (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT(optInstanceF.map(Xor.fromOption(_, error)))
+  }
+
+  def pure[A](instance: A)
+             (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT.fromXor[Future](Xor.right[Error, A](instance))
+  }
+
+  def fromOption[A](optInstance: Option[A],
+                    error: Error = Error.UnknownError())
+                   (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT.fromXor[Future](Xor.fromOption(optInstance, error))
+  }
+
+  def liftF[A](instanceF: Future[A])
+              (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT(instanceF.map(Xor.right[Error, A]))
+  }
 }
 
 object Main extends App {
   import Error._
   implicit val ec = ExecutionContext.global
 
-//  pureXorT
+  /**
+    * Ideal case: pure use of XorT from existing functions
+    */
+  pureXorT
   def pureXorT = {
     (
       for {
@@ -82,6 +108,9 @@ object Main extends App {
     }
   }
 
+  /**
+    * Meanwhile: way to impose XorT for current codebase
+    */
   dealWithFutureOption
   def dealWithFutureOption = {
     val u1Id = 1L
