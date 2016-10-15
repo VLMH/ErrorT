@@ -23,8 +23,8 @@ object UserRepo {
   def find(id: Long)(implicit ec: ExecutionContext): XorT[Future, Error, User] = {
     println(s"find user #$id")
     users.find(u => u.id == id) match {
-      case Some(user) => XorT.right(Future { user })
-      case None => XorT.left(Future { UserNotFoundError(id) })
+      case Some(user) => XorT.right[Future, Error, User](Future { user })
+      case None => XorT.left[Future, Error, User](Future { UserNotFoundError(id) })
     }
   }
 
