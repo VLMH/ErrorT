@@ -38,6 +38,9 @@ object UserRepo {
   }
 }
 
+/**
+  * For biz error that should return error code eventually instead of throw exception
+  */
 sealed trait Error {
   def code: Int
   def message: String
@@ -57,6 +60,9 @@ object Error {
   }
 }
 
+/**
+  * Shorthand to convert `A`, `Option[A]`, `Future[A]`, `Future[Option[A]]` to XorT[Future, Error, A]
+  */
 object ErrorT {
   def apply[A](optInstanceF: Future[Option[A]],
                error: Error = Error.UnknownError())
@@ -85,6 +91,9 @@ object Main extends App {
   import Error._
   implicit val ec = ExecutionContext.global
 
+  /**
+    * Ideal case: pure use of XorT from existing functions
+    */
   pureXorT
   def pureXorT = {
     (
@@ -99,6 +108,9 @@ object Main extends App {
     }
   }
 
+  /**
+    * Meanwhile: way to impose XorT for current codebase
+    */
   dealWithFutureOption
   def dealWithFutureOption = {
     val u1Id = 1L
