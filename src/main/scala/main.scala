@@ -85,7 +85,7 @@ object Main extends App {
   import Error._
   implicit val ec = ExecutionContext.global
 
-//  pureXorT
+  pureXorT
   def pureXorT = {
     (
       for {
