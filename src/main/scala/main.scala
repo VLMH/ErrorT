@@ -58,10 +58,27 @@ object Error {
 }
 
 object ErrorT {
-  def apply[A](optInstanceF: Future[Option[A]], error: Error = Error.UnknownError())(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT(optInstanceF.map(Xor.fromOption(_, error)))
-  def pure[A](instance: A)(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT.fromXor[Future](Xor.right[Error, A](instance))
-  def fromOption[A](optInstance: Option[A], error: Error = Error.UnknownError())(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT.fromXor[Future](Xor.fromOption(optInstance, error))
-  def liftF[A](instanceF: Future[A])(implicit ec: ExecutionContext): XorT[Future, Error, A] = XorT(instanceF.map(Xor.right[Error, A]))
+  def apply[A](optInstanceF: Future[Option[A]],
+               error: Error = Error.UnknownError())
+              (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT(optInstanceF.map(Xor.fromOption(_, error)))
+  }
+
+  def pure[A](instance: A)
+             (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT.fromXor[Future](Xor.right[Error, A](instance))
+  }
+
+  def fromOption[A](optInstance: Option[A],
+                    error: Error = Error.UnknownError())
+                   (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT.fromXor[Future](Xor.fromOption(optInstance, error))
+  }
+
+  def liftF[A](instanceF: Future[A])
+              (implicit ec: ExecutionContext): XorT[Future, Error, A] = {
+    XorT(instanceF.map(Xor.right[Error, A]))
+  }
 }
 
 object Main extends App {
