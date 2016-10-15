@@ -6,7 +6,7 @@ In our codebase, most functions are returning one of `A`, `Option[A]`, `Future[A
 
 With `Option`, when we get `None`, we cannot identify the error.
 
-Therefore, we don't know whcih error code we need to return to Frontend.
+Therefore, we don't know which error code to return for Frontend.
 
 # Intention
 - use `Xor` to capture the error
